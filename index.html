@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Task</title>
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Angular  -->
+    <script src="js/angular.min.js"></script>
+    <script src="js/angular-local-storage.min.js"></script>
+    <script src="js/xeditable.js"></script>
+    <link href="css/xeditable.css" rel="stylesheet" />
+
+   
+    <link href="css/common.css" rel="stylesheet" />
+</head>
+<body ng-app="myApp" ng-controller="myCtrl" ng-init="init()">
+    <div id="wrap">
+        <div class="container-fluid">
+            <div class="jumbotron text-center">
+                <button type="button" class="btn btn-primary btn-lg">
+                    <h1>ToDO !</h1>
+                </button>
+            </div>
+        </div>
+
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-2">
+                    <div class="list-group">
+                        <a class="list-group-item" ng-class="{'active':priority=='High'}" ng-click="priority='High'">High Priority <span class="badge">{{cHigh}}</span></a>
+                        <a class="list-group-item" ng-class="{'active':priority=='Medium'}" ng-click="priority='Medium'">Medium Priority <span class="badge">{{cMedium}}</span></a>
+                        <a class="list-group-item" ng-class="{'active':priority=='Low'}" ng-click="priority='Low'">Low Priority <span class="badge">{{cLow}}</span></a>
+                    </div>
+                </div>
+                <div class="col-sm-8">
+                    <form ng-submit="addTask()" class="form" role="form">
+                        <div class="row">
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                    <div class="input-group-btn">
+                                        <button name="priority" type="button" class="btn btn-default dropdown-toggle btn-lg" data-toggle="dropdown" aria-expanded="false">
+                                            Priority <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu" role="menu">
+                                            <li><a ng-click="priority='High'">High</a></li>
+                                            <li><a ng-click="priority='Medium'">Medium</a></li>
+                                            <li><a ng-click="priority='Low'">Low</a></li>
+                                        </ul>
+                                    </div>
+                                    <input type="text" name="title" class="form-control input-lg" id="addTask" placeholder="Task" ng-model="newTask" autocomplete="off" required>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <button type="submit" name="submit" class="btn btn-primary btn-lg btn-block" style="float: right"  ng-disabled="disableAdd">Add Task</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-8 col-xs-5">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search for..." style="border-radius: 15px" ng-model="search">
+                            </div>
+                        </div>
+                        <div class="col-sm-4 col-xs-7">
+                            <ul class="nav nav-pills">
+                                <li role="presentation" ng-class="{'active':show=='All'}" ng-click="show='All'"><a>All</a></li>
+                                <li role="presentation" ng-class="{'active':show=='Complete'}" ng-click="show='Complete'"><a>Completed</a></li>
+                                <li role="presentation" ng-class="{'active':show=='Pending'}" ng-click="show='Pending'"><a>Pending</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="row">
+                        <ul style="list-style-type: none">
+                            <li class="box" ng-animate="'animate'" ng-repeat="x in tasks
+                            | filter:priorityFn | filter:showFn | filter:search | orderBy:'-date'">
+                                <h4 ng-if="x.isDone">
+                                    <!-- <input type="checkbox" ng-model="x.status" class="text-muted" ng-change="toggleStatus(x)"> -->
+                                    <!-- <input type="checkbox" ng-model="x.status" ng-true-value="'completed'" ng-false-value="'pending'" ng-change="toggleStatus(x)"> -->
+                                    <input type="checkbox" ng-model="x.status" ng-true-value="'completed'" ng-false-value="'pending'" ng-change="toggleStatus(x)">
+
+
+                                    <strike class="text-muted">
+                                        <!-- <span editable-text="x.title">{{ x.title || 'Empty' }}</span> -->
+                                        <span editable-text="x.title" ng-class="{ 'completed-task': x.status === 'completed' }">{{ x.title || 'Empty' }}</span>
+
+                                    </strike>
+                                    <br /><small><i>{{ x.created_at | date:'h:mm a, MMM d' }}</i></small>
+                                    <a href="#" ng-click="deleteTask(x)">
+                                        <span class="glyphicon glyphicon-remove btn-xs" aria-hidden="true" style="float: right"></span>
+                                    </a>
+                                </h4>
+                                <h4 ng-if="!x.isDone">
+                                    <!-- <input type="checkbox" ng-model="x.status" ng-change="toggleStatus(x)">-->
+                                    <!-- <input type="checkbox" ng-model="x.status" ng-true-value="'completed'" ng-false-value="'pending'" ng-change="toggleStatus(x)"> -->
+                                    <input type="checkbox" ng-model="x.status" ng-true-value="'completed'" ng-false-value="'pending'" ng-change="toggleStatus(x)">
+
+                                    <!-- <span editable-text="x.title">{{ x.title || 'Empty' }}</span> -->
+                                    <span editable-text="x.title" ng-class="{ 'completed-task': x.status === 'completed' }">{{ x.title || 'Empty' }}</span>
+
+                                    <br /><small><i>{{x.created_at | date:'h:mm a, MMM d'}}</i></small>
+                                    <a href="#" ng-click="deleteTask(x)">
+                                        <span class="glyphicon glyphicon-remove btn-xs" aria-hidden="true" style="float: right"></span>
+                                    </a>
+                                </h4>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- <div class="row">
+                        <ul style="list-style-type: none">
+                            <li class="box" ng-animate="'animate'" ng-repeat="x in tasks | filter: {status: show, priority: priority} | filter:search | orderBy:'-date'">
+                                <h4 ng-if="x.status">
+                                    <input type="checkbox" ng-model="x.status" class="text-muted" ng-change="toggleStatus(x)">
+                                    <strike class="text-muted" ng-if="x.status">
+                                        <span editable-text="x.title">{{ x.title || 'Empty' }}</span>
+                                    </strike>
+                                    <span ng-if="!x.status" editable-text="x.title">{{ x.title || 'Empty' }}</span>
+                                    <br /><small><i>{{ x.created_at | date:'h:mm a, MMM d' }}</i></small>
+                                    <a href="#" ng-click="deleteTask(x)">
+                                        <span class="glyphicon glyphicon-remove btn-xs" aria-hidden="true" style="float: right"></span>
+                                    </a>
+                                </h4>
+                            </li>
+                        </ul>
+                    </div>
+                     -->
+<!-- 
+                    <div class="row">
+                        <ul style="list-style-type: none">
+                            <li class="box" ng-animate="'animate'" ng-repeat="x in tasks | filter:priorityFn | filter:showFn | filter:search | orderBy:'-date'">
+                                <h4>
+                                    <input type="checkbox" ng-model="x.status" ng-change="toggleStatus(x)">
+                                    <span ng-class="{ 'text-muted': x.status }">
+                                        <span editable-text="x.title">{{ x.title || 'Empty' }}</span>
+                                    </span>
+                                    <br /><small><i>{{ x.created_at | date:'h:mm a, MMM d' }}</i></small>
+                                    <a href="#" ng-click="deleteTask(x)">
+                                        <span class="glyphicon glyphicon-remove btn-xs" aria-hidden="true" style="float: right"></span>
+                                    </a>
+                                </h4>
+                            </li>
+                        </ul>
+                    </div> -->
+                    
+                <!-- <div class="row">
+                    <ul style="list-style-type: none">
+                        <li class="box" ng-repeat="x in tasks track by $index | orderBy:'-date'">
+                            <h4>
+                                <input type="checkbox" ng-model="x.isDone">
+                                <span editable-text="x.title">{{x.title || 'Empty'}}</span>
+                                <br>
+                                <small><i>{{x.date | date:'h:mm a, MMM d'}}</i></small>
+                                <a><span class="glyphicon glyphicon-remove btn-xs" aria-hidden="true" style="float: right" ng-click="deleteTodo(x)"></span></a>
+                            </h4>
+                        </li>
+                    </ul>
+                </div> -->
+
+                
+                <div class="col-sm-2"></div>
+            </div>
+        </div>
+    </div>
+    <div id="footer">
+        <div class="container text-center">
+            <p class="text-muted credit">ToDO ! | &copy; <a href="https://github.com/shubhujais15/To-Do_List">Amigos</a> | <span class="label label-primary">{{tasks.length}} Tasks</span></p>
+        </div>
+    </div>
+
+  
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
+    <!-- Angular Scripts -->
+    <script src="js/myApp.js"> console.log(tasks)</script>
+    <script src="js/myCtrl.js"></script>
+    <script type="text/javascript"></script>
+</body>
+</html>
